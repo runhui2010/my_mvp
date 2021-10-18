@@ -2,16 +2,20 @@
   width: 100%;
   height: 92vh;
 }
+.leaflet-popup-content-wrapper {
+  max-height: 85vh;
+  overflow-y: auto;
+}
 body {
   width: 100%;
   margin: 0;
   padding: 0;
-  font-family: 'Roboto', sans-serif;
+  font-family: "Roboto", sans-serif;
 }
 
-
-
-input, select ,textarea{
+input,
+select,
+textarea {
   width: 100%;
   padding: 8px 12px;
   margin: 8px 0;
@@ -20,21 +24,29 @@ input, select ,textarea{
   border-radius: 10px;
   box-sizing: border-box;
 }
-.btn{
+.btn {
   margin-top: 10px;
   display: flex;
   justify-content: space-around;
   align-items: center;
 }
-button {
+button,
+.post svg {
   background-color: #1786a8;
   padding: 5px 10px;
   border-radius: 12px;
-  margin:0 15px;
+  margin: 0 15px;
   color: white;
   cursor: pointer;
 }
-.buttons{
+.post svg:hover,
+button:hover {
+  color: gold;
+}
+.leaflet-popup-content svg:hover {
+  fill: red;
+}
+.buttons {
   height: 8vh;
   background-color: #1786a8;
   display: flex;
@@ -46,31 +58,56 @@ button:hover {
   opacity: 0.8;
 }
 
-form{
+form {
   z-index: 10000;
 }
 
-.content{
+.content {
   text-align: center;
 }
-img{
+img {
   object-fit: cover;
 }
-h3,h5{
-  margin:0;
+h3,
+h5 {
+  margin: 0;
 }
-h1{
-  margin:5px 0;
+h1 {
+  margin: 5px 0;
 }
-.description{
-  margin-bottom:10px;
+.description {
+  margin-bottom: 10px;
   background-color: rgb(238, 235, 235);
-  text-align:left;
-  padding:5px;
+  text-align: left;
+  padding: 5px;
 }
-.comment_box{
-  margin:8px 0;
+.comment_box {
+  margin: 8px 0;
 }
-.marker{
+.marker {
   max-height: 60vh;
+}
+#welcome {
+  margin: 0 10px;
+  color: white;
+}
+.comment {
+  margin-left: 20px;
+}
+.filter {
+  width: 80%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.filter select {
+  width: 20%;
+  text-align: center;
+  margin-left: 20px;
+}
+.post {
+  width: 80%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
 }
