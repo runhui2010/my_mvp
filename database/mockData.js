@@ -42,7 +42,7 @@ const postGenerator = (amount) => {
       "Victor",
       "Walter",
     ][getRandomInt(0, 33)];
-    obj.price = "$ " + String(getRandomInt(1, 100));
+    obj.price = String(getRandomInt(1, 100));
     obj.item = [
       "sword",
       "music CD",
