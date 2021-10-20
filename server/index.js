@@ -55,7 +55,9 @@ app.post("/post/new", (req, res) => {
         item: req.body.item,
         description: req.body.description,
         status: "active",
+        photos: req.body.photos,
         dateCreated: String(date.valueOf()),
+        condition: req.body.condition,
       },
       (err, data) => {
         if (err) {
