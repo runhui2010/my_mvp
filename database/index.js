@@ -29,6 +29,7 @@ const Comment = model('comment', commentSchema);
 const userSchema=new Schema({
   username:String,
   password:String,
+  email:String,
 })
 const User = model('user', userSchema);
 

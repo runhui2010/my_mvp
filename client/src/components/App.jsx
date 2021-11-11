@@ -4,7 +4,11 @@ import axios from "axios";
 import { FcLike } from "react-icons/fc";
 import $ from "jquery";
 import Modal from "react-modal";
+import L from "leaflet";
+import jwt from 'jwt-decode';
+import { renderToStaticMarkup } from "react-dom/server";
 import { AiOutlineHeart, AiTwotoneHeart } from "react-icons/ai";
+import moment from 'moment'
 
 class App extends React.Component {
   constructor() {
@@ -26,6 +30,7 @@ class App extends React.Component {
       successMsg: "",
       password: "",
       username: "",
+      email:"",
       post: [],
       showMarker: false,
       comment: "",
@@ -34,6 +39,7 @@ class App extends React.Component {
         price: "",
         address: "",
         item: "",
+        photos: [],
         description: "",
         condition: "Good",
       },
@@ -53,13 +59,21 @@ class App extends React.Component {
       .get("/post")
       .then((res) => this.setState({ post: res.data }))
       .catch((err) => console.log(err));
-    if (localStorage.getItem("app")) {
+      // console.log(jwt(document.cookie.slice(6)))
+    if (document.cookie) {
       this.setState({
-        username: localStorage.getItem("app"),
+        currUser:jwt(document.cookie.slice(6)).username,
         isVisible: false,
+      });
+      this.setState({
+        // isSuccessLogin: true,
+        isVisible: false,
+        isError: false,
+        // successMsg: `Welcome, ${jwt(document.cookie.slice(6)).username}`,
       });
     }
   }
+
   clickImg(e) {
     this.setState({ isClickImg: true, displayImg: e.target.src });
   }
@@ -76,6 +90,7 @@ class App extends React.Component {
   }
   onSubmitHandler(e) {
     e.preventDefault();
+    console.log(this.state.newPost);
     axios.post("/post/new", this.state.newPost).then(() => {
       axios
         .get("/post")
@@ -99,7 +114,7 @@ class App extends React.Component {
     axios
       .post("/post/comment", {
         owner: this.state.postOwner,
-        currUser: this.state.username,
+        currUser: this.state.currUser,
         comment: this.state.comment,
       })
       .then(() => {
@@ -113,7 +128,7 @@ class App extends React.Component {
   login() {
     axios
       .post("/post/login", {
-        username: this.state.username,
+        email: this.state.email,
         password: this.state.password,
       })
       .then((res) => {
@@ -123,12 +138,13 @@ class App extends React.Component {
             errorMsg: "incorrect username or password",
           });
         } else {
-          localStorage.setItem("app", this.state.username);
+          document.cookie = `token=${res.data}`;
           this.setState({
             isSuccessLogin: true,
             isVisible: false,
             isError: false,
-            successMsg: `Welcome, ${this.state.username}`,
+            successMsg: `Welcome,${jwt(document.cookie.slice(6)).username}`,
+            currUser:jwt(document.cookie.slice(6)).username
           });
         }
       });
@@ -139,18 +155,20 @@ class App extends React.Component {
     axios
       .post("/post/signup", {
         username: this.state.username,
+        email:this.state.email,
         password: this.state.password,
       })
       .then((res) => {
         if (res.data === "exist") {
           this.setState({ isError: true, errorMsg: "account exist" });
         } else {
-          localStorage.setItem("app", this.state.username);
+          document.cookie = `token=${res.data}`;
           this.setState({
             isSuccessLogin: true,
             isVisible: false,
             isError: false,
-            successMsg: `Welcome, ${this.state.username}`,
+            successMsg: `Welcome,${jwt(document.cookie.slice(6)).username} `,
+            currUser:jwt(document.cookie.slice(6)).username
           });
         }
       });
@@ -162,8 +180,14 @@ class App extends React.Component {
     const val = e.target.value;
     if (e.target.name === "comment") {
       this.setState({ comment: val });
-    } else if (e.target.name === "username" || e.target.name === "password") {
+    } else if (e.target.name === "username" || e.target.name === "password" || e.target.name === "email") {
       this.setState({ [e.target.name]: val });
+    } else if (e.target.name === "photos") {
+      const res = e.target.value.split(", ");
+      const obj = this.state.newPost;
+      const key = e.target.name;
+      obj[key] = res;
+      this.setState({ newPost: obj });
     } else {
       const obj = this.state.newPost;
       const key = e.target.name;
@@ -199,6 +223,19 @@ class App extends React.Component {
       isVisible,
       isClickImg,
     } = this.state;
+    const freeIcon = L.icon({
+      iconUrl:
+        "https://img.icons8.com/external-wanicon-lineal-color-wanicon/64/000000/external-free-marketing-strategy-wanicon-lineal-color-wanicon.png",
+      iconSize: new L.Point(40, 40),
+    });
+    const newIcon = L.icon({
+      iconUrl: "https://img.icons8.com/doodle/48/000000/new--v1.png",
+      iconSize: new L.Point(40, 40),
+    });
+    const toyIcon = L.icon({
+      iconUrl: "https://img.icons8.com/doodle/48/000000/brick.png",
+      iconSize: new L.Point(40, 40),
+    });
     return (
       <div>
         <div className="buttons">
@@ -230,32 +267,33 @@ class App extends React.Component {
               <option>Any</option>
             </select>
           </div>
-
-          {isVisible && (
-            <button onClick={() => this.setState({ isLogin: true })}>
-              log in
-            </button>
-          )}
-          {isVisible && (
-            <button onClick={() => this.setState({ isSignUp: true })}>
-              sign up
-            </button>
-          )}
-
-          {!isVisible && (
-            <div className="post">
-              <div>
-                <AiOutlineHeart />
-              </div>
-              <button>My Post</button>
-              <button onClick={() => this.setState({ isOpen: true })}>
-                Make a Post
+          <div className="navbar_right">
+            {isVisible && (
+              <button onClick={() => this.setState({ isLogin: true })}>
+                log in
               </button>
-            </div>
-          )}
-          {!isVisible && (
-            <span id="welcome">Welcome, {this.state.username} </span>
-          )}
+            )}
+            {isVisible && (
+              <button onClick={() => this.setState({ isSignUp: true })}>
+                sign up
+              </button>
+            )}
+
+            {!isVisible && (
+              <div className="post">
+                <div>
+                  <AiOutlineHeart />
+                </div>
+                <button>My Post</button>
+                <button onClick={() => this.setState({ isOpen: true })}>
+                  Make a Post
+                </button>
+              </div>
+            )}
+            {!isVisible && (
+              <span id="welcome">Welcome, {this.state.currUser} </span>
+            )}
+          </div>
         </div>
 
         <MapContainer
@@ -269,10 +307,14 @@ class App extends React.Component {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {post.length > 0 &&
-            post.map((p) => {
+            post.map((p,i) => {
               return (
                 <div className="marker" key={p._id}>
-                  <Marker key={p.postID} position={[p.latitude, p.longitude]}>
+                  <Marker
+                    key={p.postID}
+                    position={[p.latitude, p.longitude]}
+                    icon={[newIcon,freeIcon,toyIcon][i%3]}
+                  >
                     <Popup
                       onClose={() => this.setState({ isOpenComment: false })}
                     >
@@ -292,14 +334,19 @@ class App extends React.Component {
                             })}
                         </div>
                         <h3>{p.item}</h3>
-                        <h1>{p.price}</h1>
+                        <h1>
+                          {"$ "}
+                          {p.price}
+                        </h1>
                         <h5>
                           Description:
                           <div className="description">{p.description}</div>
                         </h5>
 
                         <h5>
-                          {new Date(Number(p.dateCreated)).toLocaleString()}
+                          {new Date(Number(p.dateCreated)).toLocaleString(
+                            "en-CA"
+                          )}
                         </h5>
                         <h5>Condition: {p.condition}</h5>
                         <h5>Status: {p.status}</h5>
@@ -316,7 +363,14 @@ class App extends React.Component {
                           {p.comment.map((c) => {
                             return (
                               <div key={c._id} className="comment_box">
-                                <span>{c.asker}:</span>
+                                <div className="comment_header">
+                                  <span id="comment_name">{c.asker}:</span>
+                                  <span id="comment_date">
+                                    {moment(new Date(
+                                      Number(c.dateCreated)
+                                    ).toLocaleString()).fromNow()}
+                                  </span>
+                                </div>
                                 <div className="comment">{c.comment}</div>
                               </div>
                             );
@@ -392,10 +446,10 @@ class App extends React.Component {
         >
           <form>
             <h1 className="content">Login in</h1>
-            <b>Username:</b>
+            <b>Email:</b>
             <input
               type="text"
-              name="username"
+              name="email"
               onChange={this.onChangeHandler}
             />
             <b>Password:</b>
@@ -424,6 +478,12 @@ class App extends React.Component {
             <input
               type="text"
               name="username"
+              onChange={this.onChangeHandler}
+            />
+            <b>Email:</b>
+            <input
+              type="text"
+              name="email"
               onChange={this.onChangeHandler}
             />
             <b>Password:</b>
@@ -460,12 +520,14 @@ class App extends React.Component {
               <option>Used(normal wear)</option>
               <option>Bad</option>
             </select>
+            <b>Photos:</b>
+            <input type="text" name="photos" onChange={this.onChangeHandler} />
             <b> Description:</b>
             <textarea
               type="text"
               name="description"
               onChange={this.onChangeHandler}
-              rows="5"
+              rows="2"
             />
             <b>Address:</b>
             <input type="type" name="address" onChange={this.onChangeHandler} />
