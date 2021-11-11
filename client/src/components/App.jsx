@@ -5,8 +5,10 @@ import { FcLike } from "react-icons/fc";
 import $ from "jquery";
 import Modal from "react-modal";
 import L from "leaflet";
+import jwt from 'jwt-decode';
 import { renderToStaticMarkup } from "react-dom/server";
 import { AiOutlineHeart, AiTwotoneHeart } from "react-icons/ai";
+import moment from 'moment'
 
 class App extends React.Component {
   constructor() {
@@ -28,6 +30,7 @@ class App extends React.Component {
       successMsg: "",
       password: "",
       username: "",
+      email:"",
       post: [],
       showMarker: false,
       comment: "",
@@ -56,10 +59,17 @@ class App extends React.Component {
       .get("/post")
       .then((res) => this.setState({ post: res.data }))
       .catch((err) => console.log(err));
-    if (localStorage.getItem("app")) {
+      // console.log(jwt(document.cookie.slice(6)))
+    if (document.cookie) {
       this.setState({
-        username: localStorage.getItem("app"),
+        currUser:jwt(document.cookie.slice(6)).username,
         isVisible: false,
+      });
+      this.setState({
+        // isSuccessLogin: true,
+        isVisible: false,
+        isError: false,
+        // successMsg: `Welcome, ${jwt(document.cookie.slice(6)).username}`,
       });
     }
   }
@@ -104,7 +114,7 @@ class App extends React.Component {
     axios
       .post("/post/comment", {
         owner: this.state.postOwner,
-        currUser: this.state.username,
+        currUser: this.state.currUser,
         comment: this.state.comment,
       })
       .then(() => {
@@ -118,7 +128,7 @@ class App extends React.Component {
   login() {
     axios
       .post("/post/login", {
-        username: this.state.username,
+        email: this.state.email,
         password: this.state.password,
       })
       .then((res) => {
@@ -128,12 +138,13 @@ class App extends React.Component {
             errorMsg: "incorrect username or password",
           });
         } else {
-          localStorage.setItem("app", this.state.username);
+          document.cookie = `token=${res.data}`;
           this.setState({
             isSuccessLogin: true,
             isVisible: false,
             isError: false,
-            successMsg: `Welcome, ${this.state.username}`,
+            successMsg: `Welcome,${jwt(document.cookie.slice(6)).username}`,
+            currUser:jwt(document.cookie.slice(6)).username
           });
         }
       });
@@ -144,18 +155,20 @@ class App extends React.Component {
     axios
       .post("/post/signup", {
         username: this.state.username,
+        email:this.state.email,
         password: this.state.password,
       })
       .then((res) => {
         if (res.data === "exist") {
           this.setState({ isError: true, errorMsg: "account exist" });
         } else {
-          localStorage.setItem("app", this.state.username);
+          document.cookie = `token=${res.data}`;
           this.setState({
             isSuccessLogin: true,
             isVisible: false,
             isError: false,
-            successMsg: `Welcome, ${this.state.username}`,
+            successMsg: `Welcome,${jwt(document.cookie.slice(6)).username} `,
+            currUser:jwt(document.cookie.slice(6)).username
           });
         }
       });
@@ -167,7 +180,7 @@ class App extends React.Component {
     const val = e.target.value;
     if (e.target.name === "comment") {
       this.setState({ comment: val });
-    } else if (e.target.name === "username" || e.target.name === "password") {
+    } else if (e.target.name === "username" || e.target.name === "password" || e.target.name === "email") {
       this.setState({ [e.target.name]: val });
     } else if (e.target.name === "photos") {
       const res = e.target.value.split(", ");
@@ -278,7 +291,7 @@ class App extends React.Component {
               </div>
             )}
             {!isVisible && (
-              <span id="welcome">Welcome, {this.state.username} </span>
+              <span id="welcome">Welcome, {this.state.currUser} </span>
             )}
           </div>
         </div>
@@ -353,9 +366,9 @@ class App extends React.Component {
                                 <div className="comment_header">
                                   <span id="comment_name">{c.asker}:</span>
                                   <span id="comment_date">
-                                    {new Date(
+                                    {moment(new Date(
                                       Number(c.dateCreated)
-                                    ).toLocaleString("en-CA")}
+                                    ).toLocaleString()).fromNow()}
                                   </span>
                                 </div>
                                 <div className="comment">{c.comment}</div>
@@ -433,10 +446,10 @@ class App extends React.Component {
         >
           <form>
             <h1 className="content">Login in</h1>
-            <b>Username:</b>
+            <b>Email:</b>
             <input
               type="text"
-              name="username"
+              name="email"
               onChange={this.onChangeHandler}
             />
             <b>Password:</b>
@@ -465,6 +478,12 @@ class App extends React.Component {
             <input
               type="text"
               name="username"
+              onChange={this.onChangeHandler}
+            />
+            <b>Email:</b>
+            <input
+              type="text"
+              name="email"
               onChange={this.onChangeHandler}
             />
             <b>Password:</b>

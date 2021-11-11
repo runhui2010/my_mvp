@@ -3,6 +3,11 @@ const bodyParser = require("body-parser");
 const { Post, Comment, User } = require("../database/index.js");
 const uuid = require("uuid");
 const axios = require("axios");
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
+const bcrypt = require('bcryptjs');
+
+dotenv.config({ path: './.env' });
 
 const app = express();
 const PORT = 3000;
@@ -94,33 +99,47 @@ app.post("/post/comment", (req, res) => {
   });
 });
 
-app.post("/post/signup", (req, res) => {
-  User.find({ username: req.body.username }, (err, data) => {
-    if (err) {
-      res.sendStatus(400);
-    } else {
-      if (data.length !== 0) {
-        res.send("exist");
-      } else {
-        res.send("create");
-      }
-    }
-  });
-  User.create({ username: req.body.username, password: req.body.password });
+app.post("/post/signup", async (req, res) => {
+  const response = await User.find({ email: req.body.email });
+  if (response.length > 0) {
+    res.send('exist');
+  } else {
+    const salt = await bcrypt.genSalt(10);
+    const hash = await bcrypt.hash(req.body.password, salt);
+    const newUser = await User.create({
+      username: req.body.username,
+      password: hash,
+      email: req.body.email,
+    });
+    const user = {
+      id: newUser._id,
+      username: newUser.username
+    };
+    jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, (err, token) => {
+      res.send(token);
+    });
+  }
 });
-app.post("/post/login", (req, res) => {
-  User.find({ username: req.body.username }, (err, data) => {
-    if (err) {
-      res.sendStatus(400);
+app.post("/post/login", async (req, res) => {
+  const response = await User.find({ email: req.body.email });
+  if (response.length > 0) {
+    const password = await response[0].password;
+    const bool = await bcrypt.compare(req.body.password, password);
+    if (bool) {
+      const { _id, username} = response[0];
+      const user = {
+        id: _id,
+        username
+      };
+      jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, (err, token) => {
+        res.send(token);
+      });
     } else {
-      console.log("data:", data);
-      if (data.length === 0 || data[0].password !== String(req.body.password)) {
-        res.send("incorrect");
-      } else {
-        res.send("correct");
-      }
+      res.send('incorrect');
     }
-  });
+  } else {
+    res.send('incorrect');
+  }
 });
 
 app.listen(PORT, () => {
