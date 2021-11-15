@@ -7,9 +7,9 @@ Build a MERN Minimal Viable Product project in two days. The website allows user
 
 <div align="center">
 <br>
-<img src="https://github.com/runhui2010/my_mvp/blob/main/Screen%20Shot%202021-11-14%20at%204.50.20%20PM.png" alt="mvp_screenshot" width="300px" height="200px">
-<img src="https://github.com/runhui2010/my_mvp/blob/main/Screen%20Shot%202021-11-14%20at%204.51.11%20PM.png" alt="mvp_screenshot" width="300px" height="200px">
-<img src="https://github.com/runhui2010/my_mvp/blob/main/Screen%20Shot%202021-11-14%20at%204.51.32%20PM.png" alt="mvp_screenshot" width="300px" height="200px">
+<img src="https://github.com/runhui2010/my_mvp/blob/main/Screen%20Shot%202021-11-14%20at%204.50.20%20PM.png" alt="mvp_screenshot" width="200px" height="150px">
+<img src="https://github.com/runhui2010/my_mvp/blob/main/Screen%20Shot%202021-11-14%20at%204.51.11%20PM.png" alt="mvp_screenshot" width="200px" height="150px">
+<img src="https://github.com/runhui2010/my_mvp/blob/main/Screen%20Shot%202021-11-14%20at%204.51.32%20PM.png" alt="mvp_screenshot" width="200px" height="150px">
 <br>
 </div>
 <ul>
